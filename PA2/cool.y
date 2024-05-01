@@ -199,7 +199,6 @@ feature
 { $$ = attr($1, $3, no_expr()); }
 | OBJECTID ':' TYPEID ASSIGN expr
 { $$ = attr($1, $3, $5); }
-| error ';' {}
 ;
 
 formal_list
@@ -248,14 +247,12 @@ expr_comma: expr
 { $$ = single_Expressions($1); }
 | expr_comma ',' expr
 { $$ = append_Expressions($1, single_Expressions($3)); }
-| error ',' {}
 ;
 
 
 expr_list :
 expr ';' { $$ = single_Expressions($1); }
 | expr_list expr ';' { $$ = append_Expressions($1, single_Expressions($2)); }
-| error ';' {}
 ;
 
 expr
@@ -263,14 +260,12 @@ expr
 { $$ = assign($1, $3); }
 | expr '.' OBJECTID '(' ')'
 { $$ = dispatch($1, $3, nil_Expressions()); }
+| expr '.' OBJECTID '(' expr_comma ')'
+{ $$ = dispatch($1, $3, $5);}
 | expr '@' TYPEID '.' OBJECTID '(' ')'
 { $$ = static_dispatch($1, $3, $5, nil_Expressions()); }
 | expr '@' TYPEID '.' OBJECTID '(' expr_comma ')'
 { $$ = static_dispatch($1, $3, $5, $7); }
-| expr '.' OBJECTID '(' expr ')'
-{ $$ = dispatch($1, $3, single_Expressions($5));}
-| expr '.' OBJECTID '(' expr ',' expr_list ')'
-{ $$ = dispatch($1, $3, append_Expressions(single_Expressions($5), $7));}
 
 | OBJECTID '(' ')'
 { $$ = dispatch(object(idtable.add_string("self")), $1, nil_Expressions());}
@@ -324,8 +319,8 @@ expr
 { $$ = string_const($1); }
 | BOOL_CONST
 { $$ = bool_const($1); }
-| '{' error '}'
-{}
+
+| error {}
 ;
 
 

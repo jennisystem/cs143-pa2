@@ -23,8 +23,25 @@ Class C inherits a {
 Class D inherts A {
 };
 
+
+class AA {
+    x : Int;
+
+    badmethod1() : Int {
+        (* Test error in expression *)
+        (x + )
+    };
+
+    badmethod2() : Int {
+        ~+x
+    };
+
+    (* Test error in feature list *)
+    badmethod3() : Int {
+    ;
+};
+
+
 (* error:  closing brace is missing *)
 Class E inherits A {
 ;
-
-
