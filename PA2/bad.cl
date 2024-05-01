@@ -27,3 +27,4 @@ Class D inherts A {
 Class E inherits A {
 ;
 
+
