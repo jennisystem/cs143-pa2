@@ -159,6 +159,7 @@ int omerrs = 0;               /* number of erros in lexing and parsing */
 %left '@'
 %left '.'
 %left '(' ')'
+%nonassoc IN
 
 
 
@@ -243,9 +244,7 @@ case
 | error ';' {}
 ;
 
-
-expr_comma	
-: expr
+expr_comma: expr
 { $$ = single_Expressions($1); }
 | expr_comma ',' expr
 { $$ = append_Expressions($1, single_Expressions($3)); }
@@ -267,9 +266,7 @@ expr
 | expr '@' TYPEID '.' OBJECTID '(' ')'
 { $$ = static_dispatch($1, $3, $5, nil_Expressions()); }
 | expr '@' TYPEID '.' OBJECTID '(' expr_comma ')'
-{ $$ = static_dispatch($1, $3, $5 , $7); }
-| expr '@' TYPEID '.' OBJECTID '(' expr ',' expr_list ')'
-{ $$ = static_dispatch($1, $3, $5, append_Expressions(single_Expressions($7), $9)); }
+{ $$ = static_dispatch($1, $3, $5, $7); }
 | expr '.' OBJECTID '(' expr ')'
 { $$ = dispatch($1, $3, single_Expressions($5));}
 | expr '.' OBJECTID '(' expr ',' expr_list ')'
