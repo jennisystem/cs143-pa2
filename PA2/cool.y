@@ -180,7 +180,7 @@ class	: CLASS TYPEID '{' optional_feature_list '}' ';'
 	      stringtable.add_string(curr_filename)); }
 | CLASS TYPEID INHERITS TYPEID '{' optional_feature_list '}' ';'
 { $$ = class_($2,$4,$6,stringtable.add_string(curr_filename)); }
-| error
+| CLASS error ';' {}
 ;
 
 /* Feature list may be empty, but no empty features in list. */
@@ -189,7 +189,6 @@ optional_feature_list
 {  $$ = nil_Features(); }
 | optional_feature_list feature ';'
 { $$ = append_Features($1, single_Features($2)); }
-| error
 ;
 
 feature
@@ -199,7 +198,7 @@ feature
 { $$ = attr($1, $3, no_expr()); }
 | OBJECTID ':' TYPEID ASSIGN expr
 { $$ = attr($1, $3, $5); }
-| error
+| error ';' {}
 ;
 
 formal_list
@@ -209,6 +208,7 @@ formal_list
 { $$ = single_Formals($1); }
 | formal_list ',' formal
 { $$ = append_Formals($1, single_Formals($3)); }
+| error ',' {}
 ;
 
 formal
@@ -240,6 +240,7 @@ case_list
 case
 : OBJECTID ':' TYPEID DARROW expr ';'
 { $$ = branch($1, $3, $5); }
+| error ';' {}
 ;
 
 
@@ -248,12 +249,14 @@ expr_comma
 { $$ = single_Expressions($1); }
 | expr_comma ',' expr
 { $$ = append_Expressions($1, single_Expressions($3)); }
+| error ',' {}
 ;
 
 
 expr_list :
 expr ';' { $$ = single_Expressions($1); }
 | expr_list expr ';' { $$ = append_Expressions($1, single_Expressions($2)); }
+| error ';' {}
 ;
 
 expr
