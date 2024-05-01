@@ -287,7 +287,12 @@ expr
 | '~' expr
 { $$ = neg($2); }
 
-
+| expr '<' expr
+{ $$ lt( $1, $3); }
+| expr LE expr
+{ $$ leq( $1, $3); }
+| expr '=' expr
+{ $$ eq( $1, $3); }
 
 | NOT expr
 { $$ = comp($2); }
@@ -299,41 +304,11 @@ expr
 { $$ = int_const($1); }
 | STR_CONST
 { $$ = string_const($1); }
-    | BOOL_CONST
-    { $$ = bool_const($1); }
-    | '{' error '}'
-    {}
-    ;
-
-    exp_compare
-    : exp_no_compare '<' exp_no_compare
-    { $$ = lt($1, $3); }
-    | exp_no_compare LE exp_no_compare
-    { $$ = leq($1, $3); }
-    | exp_no_compare '=' exp_no_compare
-    { $$ = eq($1, $3); }
-    ;
-
-    exp_list_dispatch
-    : /* empty */
-    { $$ = nil_Expressions(); }
-    | a_exp
-    { $$ = single_Expressions($1); }
-    | exp_list_dispatch ',' a_exp
-    { $$ = append_Expressions($1, single_Expressions($3)); }
-    | exp_list_dispatch ',' error
-    {}
-    ;
-
-    exp_list_block
-    : exp ';'
-    { $$ = single_Expressions($1); }
-    | exp_list_block a_exp ';'
-    { $$ = append_Expressions($1, single_Expressions($2)); }
-    | exp_list_block error ';'
-    | error ';' exp_list_block
-    {}
-    ;
+| BOOL_CONST
+{ $$ = bool_const($1); }
+| '{' error '}'
+{}
+;
 
 
 
