@@ -136,14 +136,16 @@ int omerrs = 0;               /* number of erros in lexing and parsing */
 
 /* ************* CHECK ********************* */
 %type <feature> feature
-
+%type <formals> formal_list
 %type <formal> formal
-%type <formals> formals_list
-
-%type <case_> case
 %type <cases> case_list
+%type <case_> case
+%type <expression> expr
+%type <expression> assign_
+%type <expressions> expr_list
+%type <expressions> expr_comma
+%type <expression> let_loop    
 
-%type < > let_loop    
 /* Precedence declarations go here. */
 
 /* ************* DOUBLE CHECK THESE ********************* */
@@ -186,13 +188,9 @@ optional_feature_list
 :		/* empty */
 {  $$ = nil_Features(); }
 | feature
-{
-  $$ = single_Features($1);
-}
+{ $$ = single_Features($1); }
 | optional_feature_list feature
-{
-  $$ = append_Features($1, single_Feautres($2));
-}
+{ $$ = append_Features($1, single_Features($2)); }
 ;
 
 feature
@@ -218,11 +216,19 @@ formal
 { $$ = formal($1, $3); }
 ;
 
+assign_	
+: /* empty */
+{ $$ = no_expr(); }
+| ASSIGN expr
+{ $$ = $2; }
+;
+
 let_loop 
-: OBJECTID ':' TYPEID ASSIGN IN expr
+: OBJECTID ':' TYPEID assign_ IN expr
 { $$ = let($1, $3, $4, $6); }
-| OBJECTID ':' TYPEID ASSIGN ',' let_loop
+| OBJECTID ':' TYPEID assign_ ',' let_loop
 { $$ = let($1, $3, $4, $6); }
+;
 
 case_list
 : case
@@ -236,14 +242,28 @@ case
 { $$ = branch($1, $3, $5); }
 ;
 
+
+expr_comma	
+: expr
+{ $$ = single_Expressions($1); }
+| expr_comma ',' expr
+{ $$ = append_Expressions($1, single_Expressions($3)); }
+;
+
+
+expr_list :
+expr ';' { $$ = single_Expressions($1); }
+| expr_list expr ';' { $$ = append_Expressions($1, single_Expressions($2)); }
+;
+
 expr
 : OBJECTID ASSIGN expr
 { $$ = assign($1, $3); }
 | expr '.' OBJECTID '(' ')'
-{ $$ = dispatch($1, $3); }
+{ $$ = dispatch($1, $3, nil_Expressions()); }
 | expr '@' TYPEID '.' OBJECTID '(' ')'
-{ $$ = static_dispatch($1, $3, $5); }
-| expr '@' TYPEID '.' OBJECTID '(' expr ')'
+{ $$ = static_dispatch($1, $3, $5, nil_Expressions()); }
+| expr '@' TYPEID '.' OBJECTID '(' expr_comma ')'
 { $$ = static_dispatch($1, $3, $5 , $7); }
 | expr '@' TYPEID '.' OBJECTID '(' expr ',' expr_list ')'
 { $$ = static_dispatch($1, $3, $5, append_Expressions(single_Expressions($7), $9)); }
@@ -256,12 +276,12 @@ expr
 { $$ = dispatch(object(idtable.add_string("self")), $1, nil_Expressions());}
 | OBJECTID '(' expr')'
 { $$ = dispatch(object(idtable.add_string("self")), $1, single_Expressions($3));}
-| OBJECTID '(' expr ',' exp_list_dispatch ')'
+| OBJECTID '(' expr ',' expr_list ')'
 { $$ = dispatch(object(idtable.add_string("self")), $1, append_Expressions(single_Expressions($3), $5));}
     
 | IF expr THEN expr ELSE expr FI
 { $$ = cond($2, $4, $6); }
-| WHILE a_exp LOOP expr POOL
+| WHILE expr LOOP expr POOL
 { $$ = loop($2, $4); }
 | '{' expr_list '}'
 { $$ = block($2); }
@@ -286,14 +306,12 @@ expr
 { $$ = divide($1, $3); }
 | '~' expr
 { $$ = neg($2); }
-
 | expr '<' expr
-{ $$ lt( $1, $3); }
+{ $$ = lt( $1, $3); }
 | expr LE expr
-{ $$ leq( $1, $3); }
+{ $$ = leq($1,$3); }
 | expr '=' expr
-{ $$ eq( $1, $3); }
-
+{ $$ = eq($1,$3); }
 | NOT expr
 { $$ = comp($2); }
 | '(' expr ')'
