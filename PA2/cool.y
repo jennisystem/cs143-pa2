@@ -186,10 +186,15 @@ class	: CLASS TYPEID '{' optional_feature_list '}' ';'
 
 /* Feature list may be empty, but no empty features in list. */
 optional_feature_list
-:		/* empty */
+: /* empty */
 {  $$ = nil_Features(); }
+| feature ';'
+{ $$ = single_Feature($1); } 
 | optional_feature_list feature ';'
-{ $$ = append_Features($1, single_Features($2)); }
+{ $$ = append_Features($1, single_Features($2));}
+| optional_feature_list error ';'
+{ $$ = append_Feature($1,nil_Features());
+  yyerrok; }
 ;
 
 feature
