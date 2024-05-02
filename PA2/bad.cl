@@ -27,18 +27,28 @@ Class D inherts A {
 class AA {
     x : Int;
 
+    y: ;
+
     badmethod1() : Int {
-        (* Test error in expression *)
-        (x + )
+        {
+            (* Test error in expression *)
+            (x + )
+        }
     };
 
     badmethod2() : Int {
-        ~+x
+        {
+            ~+x
+        }
     };
 
     (* Test error in feature list *)
     badmethod3() : Int {
-    ;
+        {
+            (* Some error inside a {} *)
+            x+-
+        }
+    };
 };
 
 

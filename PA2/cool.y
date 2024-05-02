@@ -174,6 +174,7 @@ class_list
 | class_list class	/* several classes */
 { $$ = append_Classes($1,single_Classes($2));
   parse_results = $$; }
+;
 
 /* If no parent is specified, the class inherits from the Object class. */
 class	: CLASS TYPEID '{' optional_feature_list '}' ';'
@@ -181,7 +182,7 @@ class	: CLASS TYPEID '{' optional_feature_list '}' ';'
 	      stringtable.add_string(curr_filename)); }
 | CLASS TYPEID INHERITS TYPEID '{' optional_feature_list '}' ';'
 { $$ = class_($2,$4,$6,stringtable.add_string(curr_filename)); }
-| CLASS error ';' {}
+| error {}
 ;
 
 /* Feature list may be empty, but no empty features in list. */
@@ -199,6 +200,7 @@ feature
 { $$ = attr($1, $3, no_expr()); }
 | OBJECTID ':' TYPEID ASSIGN expr
 { $$ = attr($1, $3, $5); }
+| error {}
 ;
 
 formal_list
@@ -251,8 +253,10 @@ expr_comma: expr
 
 
 expr_list :
-expr ';' { $$ = single_Expressions($1); }
-| expr_list expr ';' { $$ = append_Expressions($1, single_Expressions($2)); }
+  expr ';' { $$ = single_Expressions($1); }
+  | expr_list expr ';' { $$ = append_Expressions($1, single_Expressions($2)); }
+
+  | error {}
 ;
 
 expr
@@ -271,7 +275,7 @@ expr
 { $$ = dispatch(object(idtable.add_string("self")), $1, nil_Expressions());}
 | OBJECTID '(' expr')'
 { $$ = dispatch(object(idtable.add_string("self")), $1, single_Expressions($3));}
-| OBJECTID '(' expr ',' expr_list ')'
+| OBJECTID '(' expr ',' expr_comma ')'
 { $$ = dispatch(object(idtable.add_string("self")), $1, append_Expressions(single_Expressions($3), $5));}
     
 | IF expr THEN expr ELSE expr FI
@@ -319,8 +323,6 @@ expr
 { $$ = string_const($1); }
 | BOOL_CONST
 { $$ = bool_const($1); }
-
-| error {}
 ;
 
 
